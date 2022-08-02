@@ -1,4 +1,4 @@
-module github.com/ObsidianDestroyer/linux-coreutils
+module github.com/ObsidianDestroyer/linux-coreutils/gwc
 
 go 1.18
 
