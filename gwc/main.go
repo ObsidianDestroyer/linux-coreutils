@@ -72,37 +72,35 @@ func execute(cli *cli.Context) error {
 
 	filePath := cli.Args().Get(0)
 	fileName := filepath.Base(filePath)
+	completedResult := ""
+	counts := make([]int, 0)
 
 	if filePath == "" {
 		fmt.Println("Please, type a path to file.")
 		os.Exit(3)
 	}
-
 	byteStream := readFile(filePath)
 
-	if cli.Bool("c") == true {
+	if cli.Bool("c") == true { // count bytes
 		bytesCount = countBytes(byteStream)
+		counts = append(counts, bytesCount)
 	}
-	if cli.Bool("m") == true {
+	if cli.Bool("m") == true { // count chars
 		charsCount = countChars(byteStream)
+		counts = append(counts, charsCount)
 	}
-	if cli.Bool("l") == true {
+	if cli.Bool("l") == true { // count lines
 		linesCount = countLines(byteStream)
+		counts = append(counts, linesCount)
 	}
-	if cli.Bool("L") == true {
+	if cli.Bool("L") == true { // count max len line
 		maxLineLength = countMaxLineLength(byteStream)
+		counts = append(counts, maxLineLength)
 	}
-	if cli.Bool("w") == true {
+	if cli.Bool("w") == true { // count words
 		wordsCount = countWords(byteStream)
+		counts = append(counts, wordsCount)
 	}
-	counts := []int{
-		bytesCount,
-		charsCount,
-		linesCount,
-		wordsCount,
-		maxLineLength,
-	}
-	completedResult := ""
 	for _, count := range counts {
 		if count != 0 {
 			completedResult += fmt.Sprint(count) + " "
