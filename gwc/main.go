@@ -6,8 +6,8 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 	"regexp"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 )
@@ -95,8 +95,20 @@ func execute(cli *cli.Context) error {
 	if cli.Bool("w") == true {
 		wordsCount = countWords(byteStream)
 	}
-
-	fmt.Println(bytesCount, charsCount, linesCount, maxLineLength, wordsCount, fileName)
+	counts := []int{
+		bytesCount,
+		charsCount,
+		linesCount,
+		wordsCount,
+		maxLineLength,
+	}
+	completedResult := ""
+	for _, count := range counts {
+		if count != 0 {
+			completedResult += fmt.Sprint(count) + " "
+		}
+	}
+	fmt.Println(completedResult + fileName)
 	return nil
 }
 
