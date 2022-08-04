@@ -7,12 +7,16 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"regexp"
 
 	"github.com/urfave/cli/v2"
 )
 
+var appName = "gwc"
 var helpUsage = "Prints the number of characters of each line, words and bytes for each FILE and rmultiple files. " +
 	"According to a sequence of non-zero sampled characters, separated by whitespace."
+
+var IsLetter = regexp.MustCompile("^[a-zA-Z!@#$&()\\-`.+,/\"]*$").MatchString
 
 func main() {
 	applicationFlags := []cli.Flag{
@@ -36,10 +40,14 @@ func main() {
 			Usage:   "Print max length of line",
 			Aliases: []string{"max-line-length"},
 		},
+		&cli.BoolFlag{
+			Name:    "w",
+			Usage:   "Print max length of line",
+			Aliases: []string{"words"},
+		},
 	}
-
 	app := &cli.App{
-		Name:   "gwc",
+		Name:   appName,
 		Usage:  helpUsage,
 		Flags:  applicationFlags,
 		Action: execute,
@@ -59,6 +67,7 @@ func execute(cli *cli.Context) error {
 	var bytesCount int
 	var charsCount int
 	var linesCount int
+	var wordsCount int
 	var maxLineLength int
 
 	filePath := cli.Args().Get(0)
@@ -83,8 +92,11 @@ func execute(cli *cli.Context) error {
 	if cli.Bool("L") == true {
 		maxLineLength = countMaxLineLength(byteStream)
 	}
+	if cli.Bool("w") == true {
+		wordsCount = countWords(byteStream)
+	}
 
-	fmt.Println(bytesCount, charsCount, linesCount, maxLineLength, fileName)
+	fmt.Println(bytesCount, charsCount, linesCount, maxLineLength, wordsCount, fileName)
 	return nil
 }
 
@@ -92,6 +104,10 @@ func readFile(filePath string) []byte {
 	file, err := os.ReadFile(filePath)
 	check(err)
 	return file
+}
+
+func getLinesArrayFromByteStream(byteStream []byte) []string {
+	return strings.Split(string(byteStream), "\n")
 }
 
 func countBytes(byteStream []byte) int {
@@ -103,11 +119,11 @@ func countChars(byteStream []byte) int {
 }
 
 func countLines(byteStream []byte) int {
-	return len(strings.Split(string(byteStream), "\n"))
+	return len(getLinesArrayFromByteStream(byteStream))
 }
 
 func countMaxLineLength(byteStream []byte) int {
-	lines := strings.Split(string(byteStream), "\n")
+	lines := getLinesArrayFromByteStream(byteStream)
 	linesLength := make([]int, len(lines))
 	maxLength := linesLength[0]
 	for _, line := range lines {
@@ -119,4 +135,18 @@ func countMaxLineLength(byteStream []byte) int {
 		}
 	}
 	return maxLength
+}
+
+func countWords(byteStream []byte) int {
+	lines := getLinesArrayFromByteStream(byteStream)
+	words := make([]string, 0)
+	for _, line := range lines {
+		splittedWords := strings.Fields(line)
+		for _, word := range splittedWords {
+			if IsLetter(word) {
+				words = append(words, word)
+			}
+		}
+	}
+	return len(words)
 }
