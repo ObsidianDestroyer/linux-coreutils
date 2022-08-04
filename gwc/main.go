@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/urfave/cli/v2"
 )
@@ -19,6 +20,21 @@ func main() {
 			Name:    "c",
 			Usage:   "Print count of bytes",
 			Aliases: []string{"bytes"},
+		},
+		&cli.BoolFlag{
+			Name:    "m",
+			Usage:   "Print count of chars",
+			Aliases: []string{"chars"},
+		},
+		&cli.BoolFlag{
+			Name:    "l",
+			Usage:   "Print count of lines",
+			Aliases: []string{"lines"},
+		},
+		&cli.BoolFlag{
+			Name:    "L",
+			Usage:   "Print max length of line",
+			Aliases: []string{"max-line-length"},
 		},
 	}
 
@@ -40,8 +56,10 @@ func check(err error) {
 }
 
 func execute(cli *cli.Context) error {
-	var completeString string
-	var count int
+	var bytesCount int
+	var charsCount int
+	var linesCount int
+	var maxLineLength int
 
 	filePath := cli.Args().Get(0)
 	fileName := filepath.Base(filePath)
@@ -54,11 +72,19 @@ func execute(cli *cli.Context) error {
 	byteStream := readFile(filePath)
 
 	if cli.Bool("c") == true {
-		count = countBytes(byteStream)
-		completeString += fmt.Sprint(count)
+		bytesCount = countBytes(byteStream)
+	}
+	if cli.Bool("m") == true {
+		charsCount = countChars(byteStream)
+	}
+	if cli.Bool("l") == true {
+		linesCount = countLines(byteStream)
+	}
+	if cli.Bool("L") == true {
+		maxLineLength = countMaxLineLength(byteStream)
 	}
 
-	fmt.Println(completeString, fileName)
+	fmt.Println(bytesCount, charsCount, linesCount, maxLineLength, fileName)
 	return nil
 }
 
@@ -70,4 +96,27 @@ func readFile(filePath string) []byte {
 
 func countBytes(byteStream []byte) int {
 	return bytes.Count(byteStream, []byte(""))
+}
+
+func countChars(byteStream []byte) int {
+	return len(byteStream)
+}
+
+func countLines(byteStream []byte) int {
+	return len(strings.Split(string(byteStream), "\n"))
+}
+
+func countMaxLineLength(byteStream []byte) int {
+	lines := strings.Split(string(byteStream), "\n")
+	linesLength := make([]int, len(lines))
+	maxLength := linesLength[0]
+	for _, line := range lines {
+		linesLength = append(linesLength, len(line))
+	}
+	for index := 0; index < len(linesLength); index++ {
+		if maxLength < linesLength[index] {
+			maxLength = linesLength[index]
+		}
+	}
+	return maxLength
 }
